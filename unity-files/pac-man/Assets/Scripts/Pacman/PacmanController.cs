@@ -18,8 +18,9 @@ public class PacmanController : MonoBehaviour
     private MovementDirections nextDirection;
     
     private Vector2 directionVector;
+    private float angleToFace;
 
-    [SerializeField] private int movementSpeed;
+    [SerializeField] private float movementSpeed;
 
     private Rigidbody2D rb;
 
@@ -44,8 +45,10 @@ public class PacmanController : MonoBehaviour
     private void FixedUpdate()
     {
         // rb.MovePosition(transform.position + nextDirection)
-        Vector2 changeInPos = directionVector * movementSpeed * Time.fixedDeltaTime;
+        Vector2 changeInPos = Time.fixedDeltaTime * movementSpeed * directionVector;
+        // 
         rb.MovePosition((Vector2)transform.position + changeInPos);
+        rb.MoveRotation(angleToFace);
     }
 
     // Pac-Man movement input detection:
@@ -61,11 +64,31 @@ public class PacmanController : MonoBehaviour
         // Pac-Man will continue in this direction until collision or different input
         float movementVertical = Input.GetAxisRaw("Vertical");
         float movementHorizontal = Input.GetAxisRaw("Horizontal");
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            directionVector = Vector2.up;
+            angleToFace = 90f;
+        }
+        else if (Input.GetKeyDown(KeyCode.S))
+        {
+            directionVector = Vector2.down;
+            angleToFace = -90f;
+        }
+        else if (Input.GetKeyDown(KeyCode.A))
+        {
+            directionVector = Vector2.left;
+            angleToFace = 180f;
+        }
+        else if (Input.GetKeyDown(KeyCode.D))
+        {
+            directionVector = Vector2.right;
+            angleToFace = 0f;
+        }
 
-        if      (movementVertical   >  0.01f) directionVector = Vector2.up;
-        else if (movementVertical   < -0.01f) directionVector = Vector2.down;
-        else if (movementHorizontal >  0.01f) directionVector = Vector2.right;
-        else if (movementHorizontal < -0.01f) directionVector = Vector2.left;
+        //if      (movementVertical   >  0.01f) directionVector = Vector2.up;
+        //else if (movementVertical   < -0.01f) directionVector = Vector2.down;
+        //else if (movementHorizontal >  0.01f) directionVector = Vector2.right;
+        //else if (movementHorizontal < -0.01f) directionVector = Vector2.left;
     }
 
     private void GetNearbyTileInfo()
