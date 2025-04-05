@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MazeTile : MonoBehaviour
 {
-    Vector2Int tileSize;
+    Vector2 tileSize;
     Vector2Int mazeCoordinate;
     Color tileColor;
     bool isPath;
@@ -15,7 +15,7 @@ public class MazeTile : MonoBehaviour
     // I should probably use these tiles to generate a maze. Rather than
     // creating a maze within editor and trying to link it to these tile instances
 
-    public void Initialise(Vector2Int size, Vector2Int coordinate, bool isPathTile, Color color)
+    public void Initialise(Vector2 origin, Vector2 size, Vector2Int coordinate, bool isPathTile, Color color)
     {
         tileSize = size;
         mazeCoordinate = coordinate;
@@ -30,7 +30,7 @@ public class MazeTile : MonoBehaviour
         }
 
         gameObject.transform.localScale = new Vector3(tileSize.x, tileSize.y, 0f);
-        transform.position = (Vector2)mazeCoordinate;
+        transform.position = origin + (Vector2)mazeCoordinate;
         isPath = isPathTile;
         spriteRenderer.color = tileColor;
     }

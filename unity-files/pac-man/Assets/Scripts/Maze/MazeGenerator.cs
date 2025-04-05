@@ -7,9 +7,12 @@ using UnityEngine;
 public class MazeGenerator : MonoBehaviour
 {
     // Prefab for individual tile
-    public GameObject tilePrefab;
+    [SerializeField] private GameObject tilePrefab;
+    [SerializeField] private float tileScaleMultiplier;
+    // Maze object's Transform (uses scale to get top-left of maze for origin)
+    [SerializeField] private Transform mazeObjectTranform;
     // Origin of maze (0, 0)
-    Vector2 MazeOrigin = Vector2.zero;
+    private Vector2 mazeOrigin;
     // default maze size:
     const int kDefaultMazeX = 28;
     const int kDefaultMazeY = 31;
@@ -17,9 +20,9 @@ public class MazeGenerator : MonoBehaviour
     //Vector2Int mazeSize;
     Dictionary<int, Color> tileColours = new();
     // Tile map. 0 = wall, 1 = path
-    // 5x8 dimensions
-    int[,] TileMap = { 
-        { 0, 0, 0, 0, 0 },
+    // 5x8 dimensions (8 arrays of 5 ints)
+    int[,] TileMap = new int[8, 5]{
+        { 2, 0, 0, 0, 0 },
         { 0, 1, 1, 1, 0 },
         { 0, 1, 0, 1, 0 },
         { 0, 1, 1, 1, 0 },
@@ -28,6 +31,7 @@ public class MazeGenerator : MonoBehaviour
         { 0, 1, 1, 1, 0 },
         { 0, 0, 0, 0, 0 },
     };
+
 
     //// Default constructor, creates maze of default size
     //public MazeGenerator()
@@ -42,24 +46,28 @@ public class MazeGenerator : MonoBehaviour
     //    //mazeSize.y = yLength;
     //    Debug.Log("tile map is " + TileMap.GetLength(1) + " by " + TileMap.GetLength(0) + ".");
     //}
-
+    
     private void Start()
     {
         Debug.Log("tile map is " + TileMap.GetLength(1) + " by " + TileMap.GetLength(0) + ".");
-        
         tileColours.Add(0, Color.red);
         tileColours.Add(1, Color.green);
-
+        tileColours.Add(2, Color.blue);
         Debug.Log("Tile colour is " + tileColours[TileMap[0, 0]].ToString() + ".");
+        // Set top-left of maze as origin. Following calculation for both x and y values:
+        // Get MazeObject position (centre of maze),
+        // minus(x)/plus(y) half of maze length (top left corner),
+        // plus half length of tile (so top left of tile is in top left of maze)
+        mazeOrigin = new Vector2(mazeObjectTranform.position.x - mazeObjectTranform.localScale.x/ 2 + tileScaleMultiplier / 2,
+            mazeObjectTranform.position.y + mazeObjectTranform.localScale.y/ 2 - tileScaleMultiplier / 2);
+        InitialiseMazeTiles();
+    }
 
-        // ~~~~~~~~~~~~~ Try to render just one tile first ~~~~~~~~~~~~~~~~~~~~~~
-        // ~~~~~~~~~~~~~ Then iterate over the array below ~~~~~~~~~~~~~~~~~~~~~~
-
-
-
+    private void InitialiseMazeTiles()
+    {
         // as each j is a column and each i is a row,
         //      j represents x, and i represents y.
-        //      Therefore, coords are in the format [j, i].
+        //      Therefore, coords ONLY are in the format [j, i].
 
         // Iterate row by row
         for (int i = 0; i < TileMap.GetLength(0); i++)
@@ -67,7 +75,6 @@ public class MazeGenerator : MonoBehaviour
             // iterate across each column of a row
             for (int j = 0; j < TileMap.GetLength(1); j++)
             {
-                Debug.Log("Coordinate: [" + i + ", " + j + "]");
                 // create MazeTile object
                 // Add object to a list?
                 // at particular co-ordinate
@@ -80,13 +87,17 @@ public class MazeGenerator : MonoBehaviour
                 MazeTile newTile = newTileObject.GetComponent<MazeTile>();
                 // determine whether this tile is path (true) or wall (false)
                 bool isTileOnPath = TileMap[i, j] == 1;
+                // Remember, coords in format (j, i) as arrays search the
+                // i'th row in the j'th column (down the 2D array, then across),
+                // so reverse the order for x and y coordinates.
+                Vector2Int mazeCoordinates = new Vector2Int(j, i);
                 // Initialise values for tile
-                newTile.Initialise(new Vector2Int(1, 1), new Vector2Int(j, i), isTileOnPath, tileColours[TileMap[i, j]]);
+                newTile.Initialise(mazeOrigin, Vector2.one * tileScaleMultiplier,
+                    mazeCoordinates, isTileOnPath, tileColours[TileMap[i, j]]);
                 // Perhaps need a tile prefab
             }
         }
     }
-
 
 
 }
